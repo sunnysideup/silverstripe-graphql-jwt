@@ -2,12 +2,12 @@
 
 namespace Firesphere\GraphQLJWT\Authentication;
 
+use SilverStripe\Core\Validation\ValidationResult;
 use BadMethodCallException;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\ORM\ValidationResult;
 use SilverStripe\Security\Authenticator;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\MemberAuthenticator\MemberAuthenticator;
@@ -45,7 +45,7 @@ class AnonymousUserAuthenticator extends MemberAuthenticator
      *
      * @skipUpgrade
      * @param array $data Form submitted data
-     * @param ValidationResult $result
+     * @param \SilverStripe\Core\Validation\ValidationResult $result
      * @param Member $member This third parameter is used in the CMSAuthenticator(s)
      * @return Member Found member, regardless of successful login
      */

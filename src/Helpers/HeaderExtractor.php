@@ -21,6 +21,7 @@ trait HeaderExtractor
         if ($authHeader && preg_match('/Bearer\s+(?<token>.*)$/i', $authHeader, $matches)) {
             return $matches['token'];
         }
+
         return null;
     }
 }

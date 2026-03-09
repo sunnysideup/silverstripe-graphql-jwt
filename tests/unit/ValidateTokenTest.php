@@ -11,7 +11,7 @@ use SilverStripe\Control\Session;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\ORM\ValidationException;
+use ValidationException;
 use SilverStripe\Security\Member;
 
 class ValidateTokenTest extends SapphireTest

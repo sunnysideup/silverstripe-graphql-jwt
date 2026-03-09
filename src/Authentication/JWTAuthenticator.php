@@ -2,6 +2,8 @@
 
 namespace Firesphere\GraphQLJWT\Authentication;
 
+use SilverStripe\Core\Validation\ValidationResult;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
 use BadMethodCallException;
 use DateInterval;
 use DateTimeImmutable;
@@ -13,7 +15,6 @@ use Firesphere\GraphQLJWT\Resolvers\Resolver;
 use Lcobucci\JWT\Encoding\ChainedFormatter;
 use Lcobucci\JWT\Encoding\JoseEncoder;
 use Lcobucci\JWT\Signer;
-use Lcobucci\JWT\Signer\Hmac;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use Lcobucci\JWT\Signer\Rsa;
@@ -24,7 +25,6 @@ use Lcobucci\JWT\Validation\Constraint\IdentifiedBy;
 use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
 use Lcobucci\JWT\Validation\Constraint\PermittedFor;
-use Lcobucci\JWT\Validation\Constraint\RelatedTo;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Lcobucci\JWT\Validation\Validator;
 use LogicException;
@@ -36,8 +36,6 @@ use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\ORM\FieldType\DBDatetime;
-use SilverStripe\ORM\ValidationException;
-use SilverStripe\ORM\ValidationResult;
 use SilverStripe\Security\Authenticator;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\MemberAuthenticator\MemberAuthenticator;
@@ -114,9 +112,11 @@ class JWTAuthenticator extends MemberAuthenticator
         if (!$path) {
             return self::HMAC;
         }
+
         if ($this->getEnv(self::JWT_KEY_PASSWORD, null)) {
             return self::RSA_PASSWORD;
         }
+
         return self::RSA;
     }
 
@@ -125,14 +125,10 @@ class JWTAuthenticator extends MemberAuthenticator
      */
     protected function getSigner(): Signer
     {
-        switch ($this->getKeyType()) {
-            case self::HMAC:
-                return new Hmac\Sha256();
-            case self::RSA:
-            case self::RSA_PASSWORD:
-            default:
-                return new Rsa\Sha256();
-        }
+        return match ($this->getKeyType()) {
+            self::HMAC => new Sha256(),
+            default => new Rsa\Sha256(),
+        };
     }
 
     /**
@@ -155,14 +151,12 @@ class JWTAuthenticator extends MemberAuthenticator
      */
     protected function getPublicKey(): Key
     {
-        switch ($this->getKeyType()) {
-            case self::HMAC:
-                // If signer key is a HMAC string instead of a path, public key == private key
-                return $this->getPrivateKey();
-            default:
-                // If signer key is a path to RSA token, then we require a separate public key path
-                return $this->makeKey(self::JWT_PUBLIC_KEY);
-        }
+        return match ($this->getKeyType()) {
+            // If signer key is a HMAC string instead of a path, public key == private key
+            self::HMAC => $this->getPrivateKey(),
+            // If signer key is a path to RSA token, then we require a separate public key path
+            default => $this->makeKey(self::JWT_PUBLIC_KEY),
+        };
     }
 
     /**
@@ -178,7 +172,7 @@ class JWTAuthenticator extends MemberAuthenticator
         $path = $this->resolvePath($key);
 
         // String key
-        if (empty($path)) {
+        if (in_array($path, [null, '', '0'], true)) {
             if ($this->isBase64String($key)) {
                 return InMemory::base64Encoded($key);
             } else {
@@ -203,7 +197,7 @@ class JWTAuthenticator extends MemberAuthenticator
     /**
      * @param array $data
      * @param HTTPRequest $request
-     * @param ValidationResult|null $result
+     * @param \SilverStripe\Core\Validation\ValidationResult|null $result
      * @return Member|null
      * @throws OutOfBoundsException
      * @throws BadMethodCallException
@@ -211,13 +205,14 @@ class JWTAuthenticator extends MemberAuthenticator
      */
     public function authenticate(array $data, HTTPRequest $request, ValidationResult &$result = null): ?Member
     {
-        if (!$result) {
+        if (!$result instanceof ValidationResult) {
             $result = new ValidationResult();
         }
+
         $token = $data['token'];
 
         /** @var JWTRecord $record */
-        list($record, $status) = $this->validateToken($token, $request);
+        [$record, $status] = $this->validateToken($token, $request);
 
         // Report success!
         if ($status === Resolver::STATUS_OK) {
@@ -239,13 +234,13 @@ class JWTAuthenticator extends MemberAuthenticator
      * @param HTTPRequest $request
      * @param Member|MemberExtension $member
      * @return Token
-     * @throws ValidationException
+     * @throws \SilverStripe\Core\Validation\ValidationException
      * @throws Exception
      */
     public function generateToken(HTTPRequest $request, Member $member): Token
     {
         $config = static::config();
-        $uniqueID = uniqid($this->getEnv('JWT_PREFIX', ''), true);
+        $uniqueID = uniqid((string) $this->getEnv('JWT_PREFIX', ''), true);
 
         // Create new record
         $record = new JWTRecord();
@@ -295,7 +290,7 @@ class JWTAuthenticator extends MemberAuthenticator
     {
         // Parse token
         $parsedToken = $this->parseToken($token);
-        if (!$parsedToken) {
+        if (!$parsedToken instanceof Token) {
             return [null, Resolver::STATUS_INVALID];
         }
 
@@ -344,7 +339,7 @@ class JWTAuthenticator extends MemberAuthenticator
             // Verify parsed token matches signer
             $parser = new Parser(new JoseEncoder());
             $parsedToken = $parser->parse($token);
-        } catch (Exception $ex) {
+        } catch (Exception) {
             // Un-parsable tokens are invalid
             return null;
         }
@@ -384,12 +379,8 @@ class JWTAuthenticator extends MemberAuthenticator
             return false;
         }
 
-        if (!$validator->validate($parsedToken, new LooseValidAt($this->getClock()))) {
-            // The token is expired
-            return false;
-        }
-
-        return true;
+        // The token is expired
+        return (bool) $validator->validate($parsedToken, new LooseValidAt($this->getClock()));
     }
 
     /**
@@ -418,6 +409,7 @@ class JWTAuthenticator extends MemberAuthenticator
         if (strstr($path, '/') !== 0) {
             $path = $base . '/' . $path;
         }
+
         return realpath($path) ?: null;
     }
 
@@ -436,9 +428,11 @@ class JWTAuthenticator extends MemberAuthenticator
         if ($value) {
             return $value;
         }
+
         if (func_num_args() === 1) {
-            throw new LogicException("Required environment variable {$key} not set");
+            throw new LogicException(sprintf('Required environment variable %s not set', $key));
         }
+
         return $default;
     }
 
@@ -490,15 +484,17 @@ class JWTAuthenticator extends MemberAuthenticator
     protected function isBase64String(string $string): bool
     {
         // Check if there are valid base64 characters
-        if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $string)) return false;
-    
+        if (!preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $string)) {
+            return false;
+        }
+
         // Decode the string in strict mode and check the results
         $decoded = base64_decode($string, true);
-        if(false === $decoded) return false;
-    
+        if (false === $decoded) {
+            return false;
+        }
+
         // Encode the string again
-        if(base64_encode($decoded) != $string) return false;
-    
-        return true;
+        return base64_encode($decoded) === $string;
     }
 }

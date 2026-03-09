@@ -4,13 +4,13 @@
 namespace Firesphere\GraphQLJWT\Resolvers;
 
 
+use SilverStripe\Core\Validation\ValidationResult;
 use Firesphere\GraphQLJWT\Authentication\CustomAuthenticatorRegistry;
 use Firesphere\GraphQLJWT\Authentication\JWTAuthenticator;
 use Firesphere\GraphQLJWT\Extensions\MemberExtension;
 use Firesphere\GraphQLJWT\Helpers\HeaderExtractor;
 use Firesphere\GraphQLJWT\Helpers\MemberTokenGenerator;
 use Firesphere\GraphQLJWT\Model\JWTRecord;
-use GraphQL\Type\Definition\ResolveInfo;
 use Psr\Container\NotFoundExceptionInterface;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
@@ -18,7 +18,6 @@ use SilverStripe\Core\Injector\Injector;
 use OutOfBoundsException;
 use BadMethodCallException;
 use Exception;
-use SilverStripe\ORM\ValidationResult;
 use SilverStripe\Security\Authenticator;
 use SilverStripe\Security\Member;
 use SilverStripe\Security\Security;
@@ -60,7 +59,7 @@ class Resolver
 
     /**
      * @return mixed
-     * @throws \Exception
+     * @throws Exception
      */
     public static function resolveValidateToken()
     {
@@ -70,7 +69,7 @@ class Resolver
         $token = static::getAuthorizationHeader($request);
 
         /** @var JWTRecord $record */
-        list($record, $status) = $authenticator->validateToken($token, $request);
+        [$record, $status] = $authenticator->validateToken($token, $request);
         $member = $status === self::STATUS_OK ? $record->Member() : null;
         return static::generateResponse($status, $member, $token);
     }
@@ -90,7 +89,7 @@ class Resolver
 
         // Check status of existing token
         /** @var JWTRecord $record */
-        list($record, $status) = $authenticator->validateToken($token, $request);
+        [$record, $status] = $authenticator->validateToken($token, $request);
         $member = null;
         switch ($status) {
             case self::STATUS_OK:
@@ -130,7 +129,7 @@ class Resolver
         $member = static::getAuthenticatedMember($args, $request);
 
         // Handle unauthenticated
-        if (!$member) {
+        if (!$member instanceof Member) {
             return static::generateResponse(self::STATUS_BAD_LOGIN);
         }
 

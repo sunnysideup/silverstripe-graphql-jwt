@@ -4,7 +4,6 @@ namespace Firesphere\GraphQLJWT\Middleware;
 
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
-use SilverStripe\Control\Middleware\HTTPMiddleware;
 use SilverStripe\SessionManager\Middleware\LoginSessionMiddleware;
 use Firesphere\GraphQLJWT\Authentication\JWTAuthenticationHandler;
 

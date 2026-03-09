@@ -23,20 +23,14 @@ trait MemberTokenGenerator
      */
     public static function getErrorMessage(string $status): string
     {
-        switch ($status) {
-            case Resolver::STATUS_EXPIRED:
-                return _t('JWT.STATUS_EXPIRED', 'Token is expired, please renew your token with a refreshToken query');
-            case Resolver::STATUS_DEAD:
-                return _t('JWT.STATUS_DEAD', 'Token is expired, but is too old to renew. Please log in again.');
-            case Resolver::STATUS_INVALID:
-                return _t('JWT.STATUS_INVALID', 'Invalid token provided');
-            case Resolver::STATUS_BAD_LOGIN:
-                return _t('JWT.STATUS_BAD_LOGIN', 'Sorry your email and password combination is rejected');
-            case Resolver::STATUS_OK:
-                return _t('JWT.STATUS_OK', 'Token is ok');
-            default:
-                throw new InvalidArgumentException("Invalid status");
-        }
+        return match ($status) {
+            Resolver::STATUS_EXPIRED => _t('JWT.STATUS_EXPIRED', 'Token is expired, please renew your token with a refreshToken query'),
+            Resolver::STATUS_DEAD => _t('JWT.STATUS_DEAD', 'Token is expired, but is too old to renew. Please log in again.'),
+            Resolver::STATUS_INVALID => _t('JWT.STATUS_INVALID', 'Invalid token provided'),
+            Resolver::STATUS_BAD_LOGIN => _t('JWT.STATUS_BAD_LOGIN', 'Sorry your email and password combination is rejected'),
+            Resolver::STATUS_OK => _t('JWT.STATUS_OK', 'Token is ok'),
+            default => throw new InvalidArgumentException("Invalid status"),
+        };
     }
 
     /**

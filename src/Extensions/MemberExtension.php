@@ -2,9 +2,9 @@
 
 namespace Firesphere\GraphQLJWT\Extensions;
 
+use SilverStripe\Core\Extension;
 use Firesphere\GraphQLJWT\Model\JWTRecord;
 use SilverStripe\Forms\FieldList;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\ORM\HasManyList;
 use SilverStripe\Security\Member;
 use stdClass;
@@ -16,8 +16,9 @@ use stdClass;
  * @property Member|MemberExtension $owner
  * @method HasManyList|JWTRecord[] AuthTokens()
  */
-class MemberExtension extends DataExtension
+class MemberExtension extends Extension
 {
+    public $owner;
     /**
      * List of names of extra subject fields to add to JWT token
      *
@@ -56,7 +57,7 @@ class MemberExtension extends DataExtension
 
         if (is_array($extraFields)) {
             foreach ($extraFields as $field) {
-                $dataField = lcfirst($field);
+                $dataField = lcfirst((string) $field);
                 $data->$dataField = $this->owner->$field;
             }
         }
@@ -74,6 +75,7 @@ class MemberExtension extends DataExtension
         foreach ($this->owner->AuthTokens() as $token) {
             $token->delete();
         }
+
         return $this->owner;
     }
 }

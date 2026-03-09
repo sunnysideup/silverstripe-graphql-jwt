@@ -4,7 +4,6 @@
 namespace Firesphere\GraphQLJWT\Authentication;
 
 
-use Firesphere\GraphQLJWT\Mutations\CreateTokenMutationCreator;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Security\Authenticator;
 

@@ -11,14 +11,6 @@ use SilverStripe\Control\Session;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
-
-/**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * WHY: automated upgrade
-  * OLD: SilverStripe\ORM\ValidationException
-  * EXP: Removed deprecated class SilverStripe\\ORM\\ValidationException - renamed to ValidationException. See: https://docs.silverstripe.org/en/6/changelogs/6.0.0/
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
 use ValidationException;
 use SilverStripe\Security\Member;
 

@@ -38,10 +38,6 @@ class MemberExtension extends Extension
 
     public function updateCMSFields(FieldList $fields)
     {
-        /** @TODO SSU RECTOR UPGRADE TASK - FieldList::removeByName: Changed type of parameter $dataFieldOnly in FieldList::removeByName() from dynamic to bool
-         * @TODO SSU RECTOR UPGRADE TASK - FieldList::removeByName: Changed type of parameter $fieldName in FieldList::removeByName() from dynamic to string|array
-         * @TODO SSU RECTOR UPGRADE TASK - FieldList::removeByName: Changed return type for method FieldList::removeByName() from dynamic to FieldList
-         */
         $fields->removeByName('AuthTokens');
     }
 

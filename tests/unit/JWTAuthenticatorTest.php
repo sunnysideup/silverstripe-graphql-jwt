@@ -12,8 +12,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\ORM\ValidationException;
-use SilverStripe\ORM\ValidationResult;
+use ValidationException;
+use ValidationResult;
 use SilverStripe\Security\Member;
 
 class JWTAuthenticatorTest extends SapphireTest

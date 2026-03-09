@@ -13,7 +13,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Dev\SapphireTest;
-use SilverStripe\ORM\ValidationException;
+use ValidationException;
 use SilverStripe\Security\Member;
 
 class RefreshTokenTest extends SapphireTest

@@ -4,7 +4,6 @@ namespace Firesphere\GraphQLJWT\Authentication;
 
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Factory;
-use SilverStripe\ORM\ValidationException;
 use SilverStripe\Security\Member;
 
 class AnonymousUserFactory implements Factory
@@ -26,9 +25,9 @@ class AnonymousUserFactory implements Factory
      * @param string $service The class name of the service.
      * @param array $params The constructor parameters.
      * @return Member The member that was created
-     * @throws ValidationException
+     * @throws \SilverStripe\Core\Validation\ValidationException
      */
-    public function create($service, array $params = array())
+    public function create($service, array $params = [])
     {
         // In case we configure multiple users
         $username = $params['username'] ?? 'anonymous';

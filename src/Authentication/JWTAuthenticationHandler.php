@@ -4,7 +4,6 @@ namespace Firesphere\GraphQLJWT\Authentication;
 
 use BadMethodCallException;
 use Exception;
-use Firesphere\GraphQLJWT\Extensions\MemberExtension;
 use Firesphere\GraphQLJWT\Helpers\HeaderExtractor;
 use OutOfBoundsException;
 use SilverStripe\Control\HTTPRequest;

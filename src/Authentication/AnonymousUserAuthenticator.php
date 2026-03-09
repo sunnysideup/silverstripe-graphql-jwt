@@ -57,6 +57,7 @@ class AnonymousUserAuthenticator extends MemberAuthenticator
 
         // Validate this member is still allowed to login
         $result = $result ?: ValidationResult::create();
+        /** @TODO SSU RECTOR UPGRADE TASK - Member::validateCanLogin: Changed type of parameter $result in Member::validateCanLogin() from SilverStripe\ORM\ValidationResult to ValidationResult|null */
         $member->validateCanLogin($result);
 
         // Emit failure to member and form (if available)

@@ -27,7 +27,7 @@ class AnonymousUserFactory implements Factory
      * @return Member The member that was created
      * @throws \SilverStripe\Core\Validation\ValidationException
      */
-    public function create($service, array $params = [])
+    public function create($service, array $params = []): ?object
     {
         // In case we configure multiple users
         $username = $params['username'] ?? 'anonymous';
